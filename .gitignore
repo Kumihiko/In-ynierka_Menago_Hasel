@@ -1,0 +1,10 @@
+# Pamięć podręczna Pythona
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Pamięć podręczna narzędzi testowych
+.pytest_cache/
+
+# Środowisko wirtualne
+venv/

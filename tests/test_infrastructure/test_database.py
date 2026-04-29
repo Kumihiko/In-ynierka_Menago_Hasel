@@ -32,11 +32,10 @@ def test_add_and_get_vault_record(memory_db):
     memory_db.initialize_schema()
     
     record_id = memory_db.add_record(
-        title="Konto Bankowe",
-        encrypted_login=b"enc_log",
-        encrypted_password=b"enc_pass",
-        record_iv=b"iv_123"
-    )
+            title="Konto Bankowe",
+            encrypted_password=b"enc_pass",
+            record_iv=b"iv_123"
+        )
     
     assert record_id == 1
     

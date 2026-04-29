@@ -19,7 +19,6 @@ class DatabaseManager:
             CREATE TABLE IF NOT EXISTS vault (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 title TEXT NOT NULL,
-                encrypted_login BLOB NOT NULL,
                 encrypted_password BLOB NOT NULL,
                 record_iv BLOB NOT NULL
             )
@@ -29,7 +28,7 @@ class DatabaseManager:
 
     def close(self) -> None:
         self.connection.close()
-        
+
     def save_config(self, key: str, value: bytes) -> None:
         cursor = self.connection.cursor()
         cursor.execute("""
@@ -45,16 +44,16 @@ class DatabaseManager:
         row = cursor.fetchone()
         return row['value'] if row else None
 
-    def add_record(self, title: str, encrypted_login: bytes, encrypted_password: bytes, record_iv: bytes) -> int:
+    def add_record(self, title: str, encrypted_password: bytes, record_iv: bytes) -> int:
         cursor = self.connection.cursor()
         cursor.execute("""
-            INSERT INTO vault (title, encrypted_login, encrypted_password, record_iv)
-            VALUES (?, ?, ?, ?)
-        """, (title, encrypted_login, encrypted_password, record_iv))
+            INSERT INTO vault (title, encrypted_password, record_iv)
+            VALUES (?, ?, ?)
+        """, (title, encrypted_password, record_iv))
         self.connection.commit()
         return cursor.lastrowid
 
     def get_all_records(self) -> list[sqlite3.Row]:
         cursor = self.connection.cursor()
-        cursor.execute("SELECT id, title, encrypted_login, encrypted_password, record_iv FROM vault")
+        cursor.execute("SELECT id, title, encrypted_password, record_iv FROM vault")
         return cursor.fetchall()

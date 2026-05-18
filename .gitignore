@@ -1,10 +1,30 @@
-# Pamięć podręczna Pythona
-__pycache__/
-*.py[cod]
-*$py.class
+# 1. Pliki bazy danych (KRYTYCZNE)
+# Bezwzględnie ignorujemy pliki z zaszyfrowanymi hasłami
+vault.db
+vault_*.db
+*.db
+*.sqlite3
 
-# Pamięć podręczna narzędzi testowych
-.pytest_cache/
-
-# Środowisko wirtualne
+# 2. Środowisko wirtualne
+# Zależności instalujemy zawsze z requirements.txt na docelowej maszynie
 venv/
+env/
+.venv/
+
+# 3. Pamięć podręczna Pythona (Cache)
+# Pliki bajtkodu generowane automatycznie przez interpreter
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# 4. Pliki środowisk programistycznych (IDE)
+# Ustawienia lokalne edytorów kodu
+.vscode/
+.idea/
+*.swp
+
+# 5. Pliki systemowe
+# Śmieci generowane przez systemy operacyjne
+.DS_Store
+Thumbs.db

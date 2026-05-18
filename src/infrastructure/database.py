@@ -57,3 +57,17 @@ class DatabaseManager:
         cursor = self.connection.cursor()
         cursor.execute("SELECT id, title, encrypted_password, record_iv FROM vault")
         return cursor.fetchall()
+    
+    def delete_record(self, record_id: int) -> None:
+        cursor = self.connection.cursor()
+        cursor.execute("DELETE FROM vault WHERE id = ?", (record_id,))
+        self.connection.commit()
+        
+    def update_record (self, record_id: int, title: str, encrypted_password: bytes, record_iv: bytes) -> None:
+        cursor = self.connection.cursor()
+        cursor.execute("""
+            UPDATE vault 
+            SET title = ?, encrypted_password = ?, record_iv = ? 
+            WHERE id = ?
+        """, (title, encrypted_password, record_iv, record_id))
+        self.connection.commit()

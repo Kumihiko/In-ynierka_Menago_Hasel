@@ -42,10 +42,24 @@ def main():
             if title:
                 QMessageBox.information(main_window, "Skopiowano", f"Hasło dla '{title}' skopiowano do schowka!")
 
+        def on_delete_requested(record_id):
+            # Kontroler usuwa z bazy
+            vault_controller.delete_vault_record(record_id)
+            # Automatyczne przeładowanie widoku
+            refresh_table()
+
+        def on_edit_requested(record_id):
+            if vault_controller.handle_edit_record(main_window, record_id):
+                refresh_table()
+
+            
+            
         # Podpinamy prawdziwe funkcje pod sygnały okna
         main_window.logout_requested.connect(on_logout)
         main_window.add_requested.connect(on_add_requested)
         main_window.copy_requested.connect(on_copy_requested)
+        main_window.delete_requested.connect(on_delete_requested)
+        main_window.edit_requested.connect(on_edit_requested)
         
         # Pobieramy prawdziwe zaszyfrowane hasła z bazy na start
         refresh_table()

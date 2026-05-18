@@ -2,11 +2,17 @@ from PyQt6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout,
                              QLabel, QLineEdit, QPushButton, QMessageBox)
 
 class AddRecordDialog(QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, current_title="", current_login=""):
         super().__init__(parent)
-        self.setWindowTitle("Dodaj nowy wpis")
+        self.setWindowTitle("Edytuj wpis" if current_title else "Dodaj nowy wpis")
         self.setFixedSize(300, 200)
         self._setup_ui()
+        
+        if current_title:
+            self.title_input.setText(current_title)
+        if current_login:
+            self.login_input.setText(current_login)
+        
 
     def _setup_ui(self):
         layout = QVBoxLayout()
@@ -41,6 +47,8 @@ class AddRecordDialog(QDialog):
         
         layout.addLayout(btn_layout)
         self.setLayout(layout)
+        
+        
 
     def get_data(self) -> dict | None:
         title = self.title_input.text().strip()

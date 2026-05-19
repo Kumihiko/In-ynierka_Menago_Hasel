@@ -28,3 +28,9 @@ __pycache__/
 # Śmieci generowane przez systemy operacyjne
 .DS_Store
 Thumbs.db
+
+# 6. Testy
+.pytest_cache/
+.tox/
+coverage.xml
+htmlcov/

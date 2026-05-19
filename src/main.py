@@ -43,9 +43,7 @@ def main():
                 QMessageBox.information(main_window, "Skopiowano", f"Hasło dla '{title}' skopiowano do schowka!")
 
         def on_delete_requested(record_id):
-            # Kontroler usuwa z bazy
             vault_controller.delete_vault_record(record_id)
-            # Automatyczne przeładowanie widoku
             refresh_table()
 
         def on_edit_requested(record_id):

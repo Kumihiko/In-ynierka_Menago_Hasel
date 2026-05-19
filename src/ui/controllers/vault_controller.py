@@ -3,12 +3,18 @@ from PyQt6.QtWidgets import QDialog, QApplication, QMessageBox
 from src.infrastructure.database import DatabaseManager
 from src.core.crypto import encrypt_data, decrypt_data
 from src.ui.views.add_record_dialog import AddRecordDialog
+from src.core.password_policy import PasswordPolicyManager
+import os
 
 class VaultController:
     def __init__(self, db: DatabaseManager, active_dek: bytes):
         self.db = db
         self.active_dek = active_dek
         self._cached_records = []
+        
+        dict_path = os.path.join("data", "pl_diceware.txt")
+        black_path = os.path.join("data", "top100k_passwords.txt")
+        self.policy_manager = PasswordPolicyManager(dict_path, black_path)
 
     def get_all_decrypted_records(self) -> list[dict]:
         records = self.db.get_all_records()
@@ -32,6 +38,7 @@ class VaultController:
 
     def handle_add_record(self, parent_window) -> bool:
         dialog = AddRecordDialog(parent_window)
+        dialog = AddRecordDialog(self.policy_manager, parent_window)
         
         if dialog.exec() == QDialog.DialogCode.Accepted:
             data = dialog.get_data()
@@ -59,11 +66,12 @@ class VaultController:
             return False
 
         dialog = AddRecordDialog(
+            policy_manager=self.policy_manager,
             parent=parent_view, 
             current_title=record_to_edit['title'], 
             current_login=record_to_edit['login']
         )
-    
+        
         if dialog.exec():
             data = dialog.get_data()
             

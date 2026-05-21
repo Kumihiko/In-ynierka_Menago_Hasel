@@ -39,7 +39,7 @@ def main():
         def on_copy_requested(record_id):
             title = vault_controller.handle_copy_password(record_id)
             if title:
-                QMessageBox.information(main_window, "Skopiowano", f"hasło dla '{title}' do schowka")
+                QMessageBox.information(main_window, "Skopiowano", f"hasło dla '{title}' skopiowane do schowka")
 
         def on_delete_requested(record_id):
             vault_controller.delete_vault_record(record_id)

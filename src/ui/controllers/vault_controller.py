@@ -5,6 +5,7 @@ from src.core.crypto import encrypt_data, decrypt_data
 from src.ui.views.add_record_dialog import AddRecordDialog
 from src.core.password_policy import PasswordPolicyManager
 import os
+from PyQt6.QtCore import QTimer, QMimeData
 
 class VaultController:
     def __init__(self, db: DatabaseManager, active_dek: bytes):
@@ -68,7 +69,7 @@ class VaultController:
         dialog = AddRecordDialog(
             policy_manager=self.policy_manager,
             parent=parent_view, 
-            current_title=record_to_edit['title'], 
+            current_title=record_to_edit['title']   , 
             current_login=record_to_edit['login']
         )
         
@@ -92,7 +93,29 @@ class VaultController:
         for record in self._cached_records:
             if record["id"] == record_id:
                 clipboard = QApplication.clipboard()
-                clipboard.setText(record["password"])
+                sensitive_password = record["password"]
+                #mime data pozwlaa spakowac ta instrukcje x-kde dla menedzerow schowka
+                mime_data = QMimeData()
+                mime_data.setText(sensitive_password)
+                # Flaga informująca menedżery schowka, by ignorowały nasze hasło
+                mime_data.setData("x-kde-passwordManagerHint", b"secret")
+                #flaga dla windowsa.
+                mime_data.setData("ExcludeClipboardContentFromMonitorProcessing", b"")
+                clipboard.setMimeData(mime_data)
+
+                def secure_clear():
+                    if clipboard.text() == sensitive_password:
+                        # Nadpisanie głównego schowka (odpowiednik skrótów klawiszowych)
+                        clipboard.setText("", mode=clipboard.Mode.Clipboard)
+                        
+                        # W systemach Linux nadpisujemy dodatkowo schowek zaznaczania tekstu
+                        if clipboard.supportsSelection():
+                            clipboard.setText("", mode=clipboard.Mode.Selection)
+                            
+                        print(f"[OpSec] Schowek został bezpiecznie wyczyszczony z hasła dla '{record['title']}'.")
+                        
+                QTimer.singleShot(15000, secure_clear)
+                
                 return record["title"]
         return None
     

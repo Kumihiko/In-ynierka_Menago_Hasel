@@ -8,6 +8,8 @@ from src.ui.controllers.vault_controller import VaultController
 
 def main():
     app = QApplication(sys.argv)
+    app.setApplicationName("MenagoHasel")
+    app.setDesktopFileName("menagohasel")
     
     # 1. Inicjalizacja warstwy infrastruktury
     db = DatabaseManager("vault.db")
@@ -52,7 +54,7 @@ def main():
 
             
             
-        # Podpinamy prawdziwe funkcje pod sygnały okna
+        # Podpinamy prawdziwe funkcje pod sygnały oknaa
         main_window.logout_requested.connect(on_logout)
         main_window.add_requested.connect(on_add_requested)
         main_window.copy_requested.connect(on_copy_requested)

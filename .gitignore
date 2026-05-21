@@ -34,3 +34,22 @@ Thumbs.db
 .tox/
 coverage.xml
 htmlcov/
+
+# Srodowisko wirtualne
+venv/
+env/
+.env
+
+# Pliki tymczasowe Pythona
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Bazy danych (ABSOLUTNIE NIE WYPYSZAĆ)
+*.db
+profiles/*.db
+vault.db
+
+# Pliki systemowe
+.DS_Store
+Thumbs.db

@@ -14,22 +14,22 @@ class LoginView(QWidget):
     def _setup_ui(self):
         layout = QVBoxLayout()
 
-        layout.addWidget(QLabel("User Profile / Login:"))
+        layout.addWidget(QLabel("Nazwa użytkownika:"))
         self.username_input = QLineEdit()
-        self.username_input.setPlaceholderText("e.g., bartosz, mama")
+        self.username_input.setPlaceholderText("e.g., Bartek, Karol, etc.")
         layout.addWidget(self.username_input)
 
         layout.addWidget(QLabel("Master Password:"))
         self.password_input = QLineEdit()
         self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
-        self.password_input.setPlaceholderText("Enter master password")
+        self.password_input.setPlaceholderText("Wpisz haslo")
         layout.addWidget(self.password_input)
 
         btn_layout = QHBoxLayout()
-        self.login_btn = QPushButton("Unlock Vault")
+        self.login_btn = QPushButton("Zaloguj")
         self.login_btn.clicked.connect(self._on_login_clicked)
         
-        self.register_btn = QPushButton("Create Profile")
+        self.register_btn = QPushButton("Stwórz konto")
         self.register_btn.clicked.connect(self._on_register_clicked)
         
         btn_layout.addWidget(self.login_btn)
@@ -43,7 +43,7 @@ class LoginView(QWidget):
         password = self.password_input.text().strip()
 
         if not username or not password:
-            self.show_error("Both fields are required!")
+            self.show_error("Oba pola wymagane")
             return
 
         self.login_attempted.emit(username, password)
@@ -53,7 +53,7 @@ class LoginView(QWidget):
         password = self.password_input.text().strip()
 
         if not username or not password:
-            self.show_error("Both fields are required to register!")
+            self.show_error("Oba pola wymagane")
             return
 
         self.register_attempted.emit(username, password)

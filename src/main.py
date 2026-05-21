@@ -39,7 +39,7 @@ def main():
         def on_copy_requested(record_id):
             title = vault_controller.handle_copy_password(record_id)
             if title:
-                QMessageBox.information(main_window, "Copied", f"Password for '{title}' copied to clipboard!")
+                QMessageBox.information(main_window, "Skopiowano", f"hasło dla '{title}' do schowka")
 
         def on_delete_requested(record_id):
             vault_controller.delete_vault_record(record_id)
@@ -90,7 +90,7 @@ def main():
         db_path = os.path.join(profiles_dir, f"{safe_username}.db")
         
         if not os.path.exists(db_path):
-            login_window.show_error("Profile does not exist. Please register first.")
+            login_window.show_error("Profil nie istnieje, stwórz konto lub sprawdź nazwę użytkownika.")
             return
 
         db = DatabaseManager(db_path)
@@ -117,7 +117,7 @@ def main():
         db_path = os.path.join(profiles_dir, f"{safe_username}.db")
         
         if os.path.exists(db_path):
-            login_window.show_error("Profile already exists. Please log in.")
+            login_window.show_error("Profil już istnieje. Zaloguj się lub wybierz inną nazwę użytkownika.")
             return
             
         db = DatabaseManager(db_path)
@@ -126,7 +126,7 @@ def main():
         
         success, message = auth_controller.handle_login_attempt(password)
         if success:
-            login_window.show_success("Profile created successfully! You can now log in.")
+            login_window.show_success("Profil utworzony pomyślnie! Możesz teraz się zalogować.")
             login_window.clear_fields()
         
         db.close()

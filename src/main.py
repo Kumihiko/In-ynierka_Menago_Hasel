@@ -1,35 +1,32 @@
 import sys
-from PyQt6.QtWidgets import QApplication, QMessageBox  # Dodany import QMessageBox
+import os
+from PyQt6.QtWidgets import QApplication, QMessageBox
 from src.infrastructure.database import DatabaseManager
 from src.ui.controllers.auth_controller import AuthController
 from src.ui.views.login_view import LoginView
 from src.ui.views.main_view import MainView
 from src.ui.controllers.vault_controller import VaultController
+from src.core.inactivity_filter import InactivityFilter
 
 def main():
     app = QApplication(sys.argv)
     app.setApplicationName("MenagoHasel")
     app.setDesktopFileName("menagohasel")
     
-    # 1. Inicjalizacja warstwy infrastruktury
-    db = DatabaseManager("vault.db")
-    db.initialize_schema()
+    TIMEOUT_MS = 300000 
+    inactivity_filter = InactivityFilter(TIMEOUT_MS)
+    app.installEventFilter(inactivity_filter)
     
-    # 2. Inicjalizacja kontrolera autoryzacji
-    auth_controller = AuthController(db)
+    db = None
+    auth_controller = None
     
-    # 3. Referencje do okien (aby nie usunął ich Garbage Collector)
     login_window = LoginView()
     main_window = None 
     
-    # --- LOGIKA PRZEŁĄCZANIA OKIEN ---
-    
-    def on_login_success(): # Naprawione wcięcie
+    def on_login_success(active_db, active_auth):
         nonlocal main_window
         main_window = MainView()
-        
-        # Tworzymy Kontroler Sejfu przekazując mu odszyfrowany klucz z RAM
-        vault_controller = VaultController(db, auth_controller.active_dek)
+        vault_controller = VaultController(active_db, active_auth.active_dek)
         
         def refresh_table():
             records = vault_controller.get_all_decrypted_records()
@@ -37,12 +34,12 @@ def main():
 
         def on_add_requested():
             if vault_controller.handle_add_record(main_window):
-                refresh_table() # Jeśli zapis się udał, odświeżamy tabelę nowymi danymi
+                refresh_table() 
 
         def on_copy_requested(record_id):
             title = vault_controller.handle_copy_password(record_id)
             if title:
-                QMessageBox.information(main_window, "Skopiowano", f"Hasło dla '{title}' skopiowano do schowka!")
+                QMessageBox.information(main_window, "Copied", f"Password for '{title}' copied to clipboard!")
 
         def on_delete_requested(record_id):
             vault_controller.delete_vault_record(record_id)
@@ -52,44 +49,100 @@ def main():
             if vault_controller.handle_edit_record(main_window, record_id):
                 refresh_table()
 
-            
-            
-        # Podpinamy prawdziwe funkcje pod sygnały oknaa
         main_window.logout_requested.connect(on_logout)
         main_window.add_requested.connect(on_add_requested)
         main_window.copy_requested.connect(on_copy_requested)
         main_window.delete_requested.connect(on_delete_requested)
         main_window.edit_requested.connect(on_edit_requested)
         
-        # Pobieramy prawdziwe zaszyfrowane hasła z bazy na start
         refresh_table()
-        
         login_window.close()
         main_window.show()
 
     def on_logout():
-        nonlocal main_window
+        nonlocal main_window, db, auth_controller
+        
+        if auth_controller is None or auth_controller.active_dek is None:
+            return
+            
         auth_controller.active_dek = None 
-        main_window.close()
+        auth_controller = None
+        
+        if db:
+            db.close()
+            db = None
+        
+        if main_window:
+            main_window.close()
+            main_window = None 
+            
+        login_window.clear_fields()
         login_window.show()
 
-    def on_login_attempt(password: str):
+    def on_login_attempt(username: str, password: str):
+        nonlocal db, auth_controller
+        safe_username = "".join(c for c in username if c.isalnum() or c in ("-", "_")).lower()
+        profiles_dir = "profiles"
+        
+        if not os.path.exists(profiles_dir):
+            os.makedirs(profiles_dir)
+            
+        db_path = os.path.join(profiles_dir, f"{safe_username}.db")
+        
+        if not os.path.exists(db_path):
+            login_window.show_error("Profile does not exist. Please register first.")
+            return
+
+        db = DatabaseManager(db_path)
+        db.initialize_schema()
+        auth_controller = AuthController(db)
         success, message = auth_controller.handle_login_attempt(password)
         
         if success:
-            on_login_success()
+            on_login_success(db, auth_controller)
         else:
+            db.close()
+            db = None
+            auth_controller = None
             login_window.show_error(message)
 
-    # --- START APLIKACJI ---
-    
+    def on_register_attempt(username: str, password: str):
+        nonlocal db, auth_controller
+        safe_username = "".join(c for c in username if c.isalnum() or c in ("-", "_")).lower()
+        profiles_dir = "profiles"
+        
+        if not os.path.exists(profiles_dir):
+            os.makedirs(profiles_dir)
+            
+        db_path = os.path.join(profiles_dir, f"{safe_username}.db")
+        
+        if os.path.exists(db_path):
+            login_window.show_error("Profile already exists. Please log in.")
+            return
+            
+        db = DatabaseManager(db_path)
+        db.initialize_schema()
+        auth_controller = AuthController(db)
+        
+        success, message = auth_controller.handle_login_attempt(password)
+        if success:
+            login_window.show_success("Profile created successfully! You can now log in.")
+            login_window.clear_fields()
+        
+        db.close()
+        db = None
+        auth_controller = None
+
+    inactivity_filter.timeout_reached.connect(on_logout)
     login_window.login_attempted.connect(on_login_attempt)
+    login_window.register_attempted.connect(on_register_attempt)
     login_window.show()
     
     exit_code = app.exec()
     
-    # Bezpieczne zamknięcie bazy po wyjściu z aplikacji
-    db.close()
+    if db:
+        db.close()
+        
     sys.exit(exit_code)
 
 if __name__ == "__main__":
